@@ -38,14 +38,19 @@ npm run tools
 
 ## MCP Client Config Example
 
-Use this command for clients that support stdio MCP servers:
+### Option A: Direct Run via Git (Recommended - No manual clone required)
+
+For teams or other environments, you can run the server directly from the Git repository using `npx`:
 
 ```json
 {
   "mcpServers": {
     "evercore-memory": {
-      "command": "node",
-      "args": ["/home/wei/workspace/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
+      "command": "npx",
+      "args": [
+        "-y",
+        "git+ssh://git@gitlab.example.com/my-org/evercore-memory-tools.git"
+      ],
       "env": {
         "EVERCORE_BASE_URL": "https://evercore.example.com",
         "EVERCORE_DEFAULT_USER_ID": "wei"
@@ -54,6 +59,49 @@ Use this command for clients that support stdio MCP servers:
   }
 }
 ```
+
+### Option B: Local Development / Custom Path
+
+If you are developing locally and want to load the server from your local workspace, use `node` with your absolute clone path:
+
+```json
+{
+  "mcpServers": {
+    "evercore-memory": {
+      "command": "node",
+      "args": ["/path/to/your/workspace/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
+      "env": {
+        "EVERCORE_BASE_URL": "https://evercore.example.com",
+        "EVERCORE_DEFAULT_USER_ID": "wei"
+      }
+    }
+  }
+}
+```
+
+### 🎯 Multi-Project & Workspace Isolation (Deterministic Scoping)
+
+To isolate memories between different projects without changing your global MCP config, you can define **Workspace-Level Configs** using `EVERCORE_DEFAULT_SESSION_ID`.
+
+For example, in the Gemini IDE environment, you can place a local workspace configuration file at **`[your-workspace]/.gemini/config/mcp_config.json`** to override the global setting for this specific folder:
+
+```json
+{
+  "mcpServers": {
+    "evercore-memory": {
+      "env": {
+        "EVERCORE_DEFAULT_SESSION_ID": "1135-poker"
+      }
+    }
+  }
+}
+```
+
+This ensures that:
+
+- **Low Coupling**: The `evercore-memory-tools` code remains 100% generic.
+- **100% Deterministic**: Memory is strictly isolated at the project/workspace boundary by code, without relying on LLM reasoning.
+- **No Global Contamination**: Related sub-projects (like `1135_poker_admin` and `1135_poker_front`) share a unified `1135-poker` memory scope seamlessly, while remaining completely invisible to other workspace environments.
 
 ## Tools
 

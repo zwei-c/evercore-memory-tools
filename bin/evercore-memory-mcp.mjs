@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
+
 const DEFAULT_BASE_URL = "https://evercore.example.com";
 const BASE_URL = (process.env.EVERCORE_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 const API_KEY = process.env.EVERCORE_API_KEY || "";
 const DEFAULT_USER_ID = process.env.EVERCORE_DEFAULT_USER_ID || "";
+const DEFAULT_SESSION_ID = process.env.EVERCORE_DEFAULT_SESSION_ID || "";
+const DEBUG_LOG_PATH = process.env.EVERCORE_MCP_DEBUG_LOG || "/tmp/evercore-memory-mcp.log";
 
 const tools = [
   {
@@ -71,23 +75,7 @@ const tools = [
                 type: "integer",
                 description: "Unix timestamp in milliseconds. Defaults to Date.now() when omitted."
               },
-              content: {
-                oneOf: [
-                  { type: "string" },
-                  {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        type: { type: "string" },
-                        text: { type: "string" }
-                      },
-                      required: ["type", "text"],
-                      additionalProperties: true
-                    }
-                  }
-                ]
-              },
+              content: { type: "string" },
               message_id: { type: "string" },
               sender_id: { type: "string" },
               sender_name: { type: "string" }
@@ -133,12 +121,37 @@ const tools = [
 
 let buffer = Buffer.alloc(0);
 
+process.stdin.resume();
+
+debugLog("startup", {
+  pid: process.pid,
+  cwd: process.cwd(),
+  node: process.version,
+  base_url: BASE_URL,
+  default_user_id: DEFAULT_USER_ID || null
+});
+
 process.stdin.on("data", (chunk) => {
+  debugLog("stdin data", { bytes: chunk.length });
   buffer = Buffer.concat([buffer, chunk]);
   readMessages();
 });
 
-process.stdin.on("end", () => process.exit(0));
+process.stdin.on("end", () => {
+  debugLog("stdin end");
+});
+
+process.stdin.on("error", (error) => {
+  debugLog("stdin error", { message: error.message, stack: error.stack });
+});
+
+process.on("beforeExit", (code) => {
+  debugLog("beforeExit", { code });
+});
+
+process.on("exit", (code) => {
+  debugLog("exit", { code });
+});
 
 function readMessages() {
   while (buffer.length > 0) {
@@ -179,12 +192,23 @@ function handleRawMessage(raw) {
 
   try {
     request = JSON.parse(raw);
+    debugLog(`request ${request.method || "<missing method>"}`, {
+      id: request.id ?? null,
+      params: request.params ?? null
+    });
   } catch (error) {
+    debugLog("parse error", { message: error.message, raw: raw.slice(0, 500) });
     sendError(null, -32700, `Parse error: ${error.message}`);
     return;
   }
 
   handleRequest(request).catch((error) => {
+    debugLog("request error", {
+      id: request.id ?? null,
+      method: request.method,
+      message: error.message,
+      stack: error.stack
+    });
     if (request.id === undefined) return;
     sendError(request.id, -32603, error.message, { stack: process.env.NODE_ENV === "development" ? error.stack : undefined });
   });
@@ -204,10 +228,15 @@ async function handleRequest(request) {
     case "initialize":
       sendResult(request.id, {
         protocolVersion: request.params?.protocolVersion || "2024-11-05",
+        protocol_version: request.params?.protocolVersion || request.params?.protocol_version || "2024-11-05",
         capabilities: {
           tools: {}
         },
         serverInfo: {
+          name: "evercore-memory",
+          version: "0.1.0"
+        },
+        server_info: {
           name: "evercore-memory",
           version: "0.1.0"
         }
@@ -215,7 +244,7 @@ async function handleRequest(request) {
       return;
 
     case "tools/list":
-      sendResult(request.id, { tools });
+      sendResult(request.id, { tools: tools.map(withSchemaAliases) });
       return;
 
     case "tools/call":
@@ -278,6 +307,10 @@ function buildSearchPayload(args) {
     ? args.filters
     : defaultUserFilter();
 
+  if (DEFAULT_SESSION_ID && !filters.session_id) {
+    filters.session_id = DEFAULT_SESSION_ID;
+  }
+
   return {
     query: args.query,
     method: args.method || "hybrid",
@@ -290,6 +323,7 @@ function buildSearchPayload(args) {
 
 function buildAddPayload(args) {
   const user_id = args.user_id || DEFAULT_USER_ID;
+  const session_id = args.session_id || DEFAULT_SESSION_ID;
   if (!user_id) {
     throw new Error("evercore_add requires user_id or EVERCORE_DEFAULT_USER_ID");
   }
@@ -305,7 +339,7 @@ function buildAddPayload(args) {
 
   return compactObject({
     user_id,
-    session_id: args.session_id,
+    session_id: session_id || undefined,
     async_mode: args.async_mode,
     messages
   });
@@ -313,13 +347,14 @@ function buildAddPayload(args) {
 
 function buildScopedPayload(args) {
   const user_id = args.user_id || DEFAULT_USER_ID;
+  const session_id = args.session_id || DEFAULT_SESSION_ID;
   if (!user_id) {
     throw new Error("This operation requires user_id or EVERCORE_DEFAULT_USER_ID");
   }
 
   return compactObject({
     user_id,
-    session_id: args.session_id
+    session_id: session_id || undefined
   });
 }
 
@@ -329,10 +364,11 @@ function buildDeletePayload(args) {
   }
 
   const user_id = args.user_id || DEFAULT_USER_ID;
+  const session_id = args.session_id || DEFAULT_SESSION_ID;
   const payload = compactObject({
     user_id,
     group_id: args.group_id,
-    session_id: args.session_id,
+    session_id: session_id || undefined,
     sender_id: args.sender_id
   });
 
@@ -397,6 +433,13 @@ function compactObject(object) {
   return Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
 }
 
+function withSchemaAliases(tool) {
+  return {
+    ...tool,
+    input_schema: tool.inputSchema
+  };
+}
+
 function toolResult(data, isError = false) {
   return {
     content: [
@@ -410,6 +453,7 @@ function toolResult(data, isError = false) {
 }
 
 function sendResult(id, result) {
+  debugLog(id === null ? "response result" : responseDebugLabel(id, result), { id, result });
   sendMessage({
     jsonrpc: "2.0",
     id,
@@ -418,6 +462,7 @@ function sendResult(id, result) {
 }
 
 function sendError(id, code, message, data) {
+  debugLog("response error", { id, code, message, data });
   sendMessage({
     jsonrpc: "2.0",
     id,
@@ -431,7 +476,23 @@ function sendError(id, code, message, data) {
 
 function sendMessage(message) {
   const json = JSON.stringify(message);
-  const payload = `Content-Length: ${Buffer.byteLength(json, "utf8")}\r\n\r\n${json}`;
-  process.stdout.write(payload);
+  process.stdout.write(`${json}\n`);
 }
 
+function responseDebugLabel(id, result) {
+  if (result?.serverInfo || result?.server_info) return "response initialize";
+  if (Array.isArray(result?.tools)) return "response tools/list";
+  return `response ${id}`;
+}
+
+function debugLog(event, data = {}) {
+  try {
+    fs.appendFileSync(DEBUG_LOG_PATH, `${JSON.stringify({
+      ts: new Date().toISOString(),
+      event,
+      ...data
+    })}\n`);
+  } catch {
+    // MCP stdout must remain protocol-only; ignore debug logging failures.
+  }
+}

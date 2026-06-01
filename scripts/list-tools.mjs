@@ -1,22 +1,31 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverPath = path.resolve(__dirname, "../bin/evercore-memory-mcp.mjs");
+const debugLogPath = "/tmp/evercore-memory-tools-list-tools-debug.log";
+fs.rmSync(debugLogPath, { force: true });
 const child = spawn(process.execPath, [serverPath], {
   stdio: ["pipe", "pipe", "inherit"],
   env: {
     ...process.env,
     EVERCORE_BASE_URL: process.env.EVERCORE_BASE_URL || "https://evercore.example.com",
-    EVERCORE_DEFAULT_USER_ID: process.env.EVERCORE_DEFAULT_USER_ID || "codex-smoke-user"
+    EVERCORE_DEFAULT_USER_ID: process.env.EVERCORE_DEFAULT_USER_ID || "codex-smoke-user",
+    EVERCORE_MCP_DEBUG_LOG: debugLogPath
   }
 });
 
 const responses = [];
 let buffer = Buffer.alloc(0);
+let sawHeaderFramedResponse = false;
+const timeout = setTimeout(() => {
+  child.kill();
+  verifyResponses();
+}, 5000);
 
 child.stdout.on("data", (chunk) => {
   buffer = Buffer.concat([buffer, chunk]);
@@ -60,14 +69,28 @@ send({
   }
 });
 
-setTimeout(() => {
-  child.kill();
+function maybeVerifyResponses() {
+  const initialize = responses.find((message) => message.id === 1);
+  const list = responses.find((message) => message.id === 2);
+  const health = responses.find((message) => message.id === 3);
+
+  if (initialize && list && health) {
+    clearTimeout(timeout);
+    child.kill();
+    verifyResponses();
+  }
+}
+
+function verifyResponses() {
   const initialize = responses.find((message) => message.id === 1);
   const list = responses.find((message) => message.id === 2);
   const health = responses.find((message) => message.id === 3);
 
   if (!initialize?.result?.serverInfo?.name) {
     fail("initialize response missing serverInfo");
+  }
+  if (!initialize?.result?.server_info?.name) {
+    fail("initialize response missing server_info");
   }
 
   const toolNames = list?.result?.tools?.map((tool) => tool.name).sort() || [];
@@ -84,29 +107,61 @@ setTimeout(() => {
       fail(`missing tool: ${name}`);
     }
   }
+  for (const tool of list?.result?.tools || []) {
+    if (!tool.inputSchema) {
+      fail(`missing inputSchema for tool: ${tool.name}`);
+    }
+    if (!tool.input_schema) {
+      fail(`missing input_schema for tool: ${tool.name}`);
+    }
+  }
+
+  const unsupportedSchemaKeyword = findUnsupportedSchemaKeyword(list?.result?.tools || []);
+  if (unsupportedSchemaKeyword) {
+    fail(`unsupported schema keyword found: ${unsupportedSchemaKeyword}`);
+  }
 
   const healthText = health?.result?.content?.[0]?.text || "";
   if (!healthText.includes("\"status\": \"healthy\"")) {
     fail("evercore_health tool call did not return healthy status");
   }
+  if (sawHeaderFramedResponse) {
+    fail("server used Content-Length framing; expected newline-delimited JSON");
+  }
+  const debugLog = fs.readFileSync(debugLogPath, "utf8");
+  if (!debugLog.includes("request initialize") || !debugLog.includes("response initialize")) {
+    fail("debug log missing initialize handshake entries");
+  }
 
   console.log("MCP tools smoke test passed.");
   console.log(toolNames.join("\n"));
-}, 500);
+}
 
 function send(message) {
   const json = JSON.stringify(message);
-  child.stdin.write(`Content-Length: ${Buffer.byteLength(json, "utf8")}\r\n\r\n${json}`);
+  child.stdin.write(`${json}\n`);
 }
 
 function readMessages() {
   while (buffer.length > 0) {
     const headerEnd = buffer.indexOf("\r\n\r\n");
-    if (headerEnd === -1) return;
+    if (headerEnd === -1) {
+      const lineEnd = buffer.indexOf("\n");
+      if (lineEnd === -1) return;
+
+      const line = buffer.subarray(0, lineEnd).toString("utf8").trim();
+      buffer = buffer.subarray(lineEnd + 1);
+      if (line.length === 0) continue;
+
+      responses.push(JSON.parse(line));
+      maybeVerifyResponses();
+      continue;
+    }
 
     const header = buffer.subarray(0, headerEnd).toString("utf8");
     const match = header.match(/Content-Length:\s*(\d+)/i);
     if (!match) return;
+    sawHeaderFramedResponse = true;
 
     const length = Number(match[1]);
     const start = headerEnd + 4;
@@ -116,7 +171,35 @@ function readMessages() {
     const raw = buffer.subarray(start, end).toString("utf8");
     buffer = buffer.subarray(end);
     responses.push(JSON.parse(raw));
+    maybeVerifyResponses();
   }
+}
+
+function findUnsupportedSchemaKeyword(value, path = "tools") {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      const found = findUnsupportedSchemaKeyword(value[index], `${path}[${index}]`);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  for (const key of ["oneOf", "anyOf", "allOf"]) {
+    if (Object.hasOwn(value, key)) {
+      return `${path}.${key}`;
+    }
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    const found = findUnsupportedSchemaKeyword(child, `${path}.${key}`);
+    if (found) return found;
+  }
+
+  return null;
 }
 
 function fail(message) {
