@@ -1,0 +1,18 @@
+{
+  "name": "evercore-memory-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP server and Codex skill for using a self-hosted EverCore memory backend.",
+  "bin": {
+    "evercore-memory-mcp": "./bin/evercore-memory-mcp.mjs"
+  },
+  "scripts": {
+    "mcp": "node ./bin/evercore-memory-mcp.mjs",
+    "smoke": "node ./scripts/smoke-test.mjs",
+    "tools": "node ./scripts/list-tools.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
