@@ -1,8 +1,10 @@
 # EverCore Memory Tools
 
-This directory contains a local MCP server and an agent skill for using the self-hosted EverCore service at `https://evercore.example.com`.
+Unofficial MCP adapter and agent skill workflow for self-hosted EverCore-compatible memory services.
 
-The MCP server intentionally has no npm dependencies. It speaks the MCP stdio JSON-RPC protocol directly and forwards calls to EverCore HTTP endpoints.
+This project targets local or self-hosted EverCore API deployments, not EverMemOS Cloud-first workflows. It gives coding agents durable project memory across sessions: decisions, conventions, bug fixes, roadmap context, and repo-scoped briefing restore.
+
+The MCP server intentionally has no npm dependencies. It speaks MCP stdio JSON-RPC directly and forwards calls to EverCore HTTP endpoints.
 
 ## Layout
 
@@ -11,36 +13,40 @@ The MCP server intentionally has no npm dependencies. It speaks the MCP stdio JS
 - `skill/references/payload-examples.md` - EverCore request examples
 - `scripts/smoke-test.mjs` - end-to-end EverCore API smoke test
 - `scripts/list-tools.mjs` - local MCP protocol smoke test
-- `docs/superpowers/plans/2026-06-01-evercore-memory-tools.md` - implementation plan
 
-## Environment
+## Requirements
+
+- Node.js 20+
+- A running EverCore-compatible API service
+
+By default, the tools assume the EverOS local quickstart endpoint:
 
 ```bash
-export EVERCORE_BASE_URL="https://evercore.example.com"
+export EVERCORE_BASE_URL="http://localhost:1995"
 ```
 
 Optional:
 
 ```bash
 export EVERCORE_API_KEY="..."
-export EVERCORE_DEFAULT_USER_ID="wei"
+export EVERCORE_DEFAULT_USER_ID="developer"
+export EVERCORE_DEFAULT_SESSION_ID="project-slug"
 ```
 
-`EVERCORE_API_KEY` is only needed if the reverse proxy or service later requires bearer auth.
+`EVERCORE_API_KEY` is only needed if your reverse proxy or service requires bearer auth.
 
 ## Run Smoke Tests
 
 ```bash
-cd /home/wei/workspace/evercore-memory-tools
-npm run smoke
 npm run tools
+EVERCORE_BASE_URL="http://localhost:1995" npm run smoke
 ```
 
-## MCP Client Config Example
+`npm run tools` verifies MCP handshake/tool schemas. `npm run smoke` writes, searches, flushes, and deletes disposable test data from the configured EverCore service.
 
-### Option A: Direct Run via Git (Recommended - No manual clone required)
+## MCP Client Config
 
-For teams or other environments, you can run the server directly from the Git repository using `npx`:
+### Option A: Run from GitHub
 
 ```json
 {
@@ -49,59 +55,51 @@ For teams or other environments, you can run the server directly from the Git re
       "command": "npx",
       "args": [
         "-y",
-        "git+ssh://git@gitlab.example.com/my-org/evercore-memory-tools.git"
+        "git+ssh://git@github.com/zwei-c/evercore-memory-tools.git"
       ],
       "env": {
-        "EVERCORE_BASE_URL": "https://evercore.example.com",
-        "EVERCORE_DEFAULT_USER_ID": "wei"
+        "EVERCORE_BASE_URL": "http://localhost:1995",
+        "EVERCORE_DEFAULT_USER_ID": "developer"
       }
     }
   }
 }
 ```
 
-### Option B: Local Development / Custom Path
-
-If you are developing locally and want to load the server from your local workspace, use `node` with your absolute clone path:
+### Option B: Local Development
 
 ```json
 {
   "mcpServers": {
     "evercore-memory": {
       "command": "node",
-      "args": ["/path/to/your/workspace/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
+      "args": ["/path/to/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
       "env": {
-        "EVERCORE_BASE_URL": "https://evercore.example.com",
-        "EVERCORE_DEFAULT_USER_ID": "wei"
+        "EVERCORE_BASE_URL": "http://localhost:1995",
+        "EVERCORE_DEFAULT_USER_ID": "developer"
       }
     }
   }
 }
 ```
 
-### 🎯 Multi-Project & Workspace Isolation (Deterministic Scoping)
+## Project Isolation
 
-To isolate memories between different projects without changing your global MCP config, you can define **Workspace-Level Configs** using `EVERCORE_DEFAULT_SESSION_ID`.
-
-For example, in the Gemini IDE environment, you can place a local workspace configuration file at **`[your-workspace]/.gemini/config/mcp_config.json`** to override the global setting for this specific folder:
+Set `EVERCORE_DEFAULT_SESSION_ID` per repo or workspace to keep memories scoped:
 
 ```json
 {
   "mcpServers": {
     "evercore-memory": {
       "env": {
-        "EVERCORE_DEFAULT_SESSION_ID": "1135-poker"
+        "EVERCORE_DEFAULT_SESSION_ID": "my-project"
       }
     }
   }
 }
 ```
 
-This ensures that:
-
-- **Low Coupling**: The `evercore-memory-tools` code remains 100% generic.
-- **100% Deterministic**: Memory is strictly isolated at the project/workspace boundary by code, without relying on LLM reasoning.
-- **No Global Contamination**: Related sub-projects (like `1135_poker_admin` and `1135_poker_front`) share a unified `1135-poker` memory scope seamlessly, while remaining completely invisible to other workspace environments.
+This lets one human user maintain separate memory spaces for different codebases without relying on the model to infer scope.
 
 ## Tools
 
@@ -111,3 +109,6 @@ This ensures that:
 - `evercore_flush` - triggers extraction through `/api/v1/memories/flush`
 - `evercore_delete` - soft deletes memories through `/api/v1/memories/delete`
 
+## Status
+
+This is an unofficial adapter. It is intended for self-hosted EverCore-compatible API deployments and local coding-agent workflows.

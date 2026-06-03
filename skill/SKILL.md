@@ -86,7 +86,7 @@ When a useful memory includes sensitive adjacent details, summarize only the saf
 
 Example:
 
-- Store: "The EverCore instance is available at https://evercore.example.com and is restricted by internal IP allowlist."
+- Store: "The self-hosted EverCore instance is available through the configured internal endpoint."
 - Do not store: raw reverse proxy credentials, auth headers, or allowlist internals.
 
 ## User And Session Naming
@@ -95,7 +95,7 @@ Use stable, explicit scopes.
 
 Recommended:
 
-- `user_id`: the human owner, such as `wei`
+- `user_id`: the human owner, such as `developer`
 - `session_id`: a compact task/session slug, such as `evercore-mcp-setup-20260601`
 
 For tests, use disposable scopes such as `codex-smoke-user` and delete them after verification.
@@ -103,4 +103,3 @@ For tests, use disposable scopes such as `codex-smoke-user` and delete them afte
 ## Direct Reference
 
 Read `references/payload-examples.md` when you need exact curl requests, MCP tool call shapes, or troubleshooting examples.
-

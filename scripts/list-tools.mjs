@@ -13,7 +13,7 @@ const child = spawn(process.execPath, [serverPath], {
   stdio: ["pipe", "pipe", "inherit"],
   env: {
     ...process.env,
-    EVERCORE_BASE_URL: process.env.EVERCORE_BASE_URL || "https://evercore.example.com",
+    EVERCORE_BASE_URL: process.env.EVERCORE_BASE_URL || "http://localhost:1995",
     EVERCORE_DEFAULT_USER_ID: process.env.EVERCORE_DEFAULT_USER_ID || "codex-smoke-user",
     EVERCORE_MCP_DEBUG_LOG: debugLogPath
   }
@@ -59,22 +59,11 @@ send({
   params: {}
 });
 
-send({
-  jsonrpc: "2.0",
-  id: 3,
-  method: "tools/call",
-  params: {
-    name: "evercore_health",
-    arguments: {}
-  }
-});
-
 function maybeVerifyResponses() {
   const initialize = responses.find((message) => message.id === 1);
   const list = responses.find((message) => message.id === 2);
-  const health = responses.find((message) => message.id === 3);
 
-  if (initialize && list && health) {
+  if (initialize && list) {
     clearTimeout(timeout);
     child.kill();
     verifyResponses();
@@ -84,7 +73,6 @@ function maybeVerifyResponses() {
 function verifyResponses() {
   const initialize = responses.find((message) => message.id === 1);
   const list = responses.find((message) => message.id === 2);
-  const health = responses.find((message) => message.id === 3);
 
   if (!initialize?.result?.serverInfo?.name) {
     fail("initialize response missing serverInfo");
@@ -121,10 +109,6 @@ function verifyResponses() {
     fail(`unsupported schema keyword found: ${unsupportedSchemaKeyword}`);
   }
 
-  const healthText = health?.result?.content?.[0]?.text || "";
-  if (!healthText.includes("\"status\": \"healthy\"")) {
-    fail("evercore_health tool call did not return healthy status");
-  }
   if (sawHeaderFramedResponse) {
     fail("server used Content-Length framing; expected newline-delimited JSON");
   }

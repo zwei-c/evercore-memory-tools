@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 
-const DEFAULT_BASE_URL = "https://evercore.example.com";
+const DEFAULT_BASE_URL = "http://localhost:1995";
 const BASE_URL = (process.env.EVERCORE_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 const API_KEY = process.env.EVERCORE_API_KEY || "";

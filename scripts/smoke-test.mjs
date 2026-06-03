@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const BASE_URL = (process.env.EVERCORE_BASE_URL || "https://evercore.example.com").replace(/\/+$/, "");
+const BASE_URL = (process.env.EVERCORE_BASE_URL || "http://localhost:1995").replace(/\/+$/, "");
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 const API_KEY = process.env.EVERCORE_API_KEY || "";
 const userId = process.env.EVERCORE_SMOKE_USER_ID || "codex-smoke-user";
@@ -152,4 +152,3 @@ function assert(condition, message) {
     throw new Error(message);
   }
 }
-

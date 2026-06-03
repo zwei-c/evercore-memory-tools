@@ -3,7 +3,7 @@
 Assume:
 
 ```bash
-export EVERCORE_BASE_URL="https://evercore.example.com"
+export EVERCORE_BASE_URL="http://localhost:1995"
 export EVERCORE_API_BASE_URL="$EVERCORE_BASE_URL/api/v1"
 ```
 
@@ -19,7 +19,7 @@ curl -sS "$EVERCORE_BASE_URL/health"
 curl -sS "$EVERCORE_API_BASE_URL/memories" \
   -H "Content-Type: application/json" \
   -d '{
-    "user_id": "wei",
+    "user_id": "developer",
     "session_id": "example-session",
     "messages": [
       {
@@ -42,11 +42,11 @@ curl -sS "$EVERCORE_API_BASE_URL/memories" \
 curl -sS "$EVERCORE_API_BASE_URL/memories/search" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "What response language does wei prefer?",
+    "query": "What response language does the developer prefer?",
     "method": "hybrid",
     "memory_types": ["episodic_memory", "profile"],
     "filters": {
-      "user_id": "wei"
+      "user_id": "developer"
     },
     "top_k": 5
   }'
@@ -62,7 +62,7 @@ curl -sS "$EVERCORE_API_BASE_URL/memories/search" \
     "method": "keyword",
     "memory_types": ["raw_message"],
     "filters": {
-      "user_id": "wei",
+      "user_id": "developer",
       "session_id": "example-session"
     },
     "top_k": 5
@@ -75,7 +75,7 @@ curl -sS "$EVERCORE_API_BASE_URL/memories/search" \
 curl -sS "$EVERCORE_API_BASE_URL/memories/flush" \
   -H "Content-Type: application/json" \
   -d '{
-    "user_id": "wei",
+    "user_id": "developer",
     "session_id": "example-session"
   }'
 ```
@@ -99,11 +99,11 @@ Search:
 {
   "name": "evercore_search",
   "arguments": {
-    "query": "What did wei decide about EverCore?",
+    "query": "What did the developer decide about EverCore?",
     "method": "hybrid",
     "memory_types": ["episodic_memory", "profile"],
     "filters": {
-      "user_id": "wei"
+      "user_id": "developer"
     },
     "top_k": 5
   }
@@ -116,12 +116,12 @@ Add:
 {
   "name": "evercore_add",
   "arguments": {
-    "user_id": "wei",
+    "user_id": "developer",
     "session_id": "evercore-mcp-setup-20260601",
     "messages": [
       {
         "role": "user",
-        "content": "The EverCore self-hosted instance is restricted to internal IPs."
+        "content": "The self-hosted EverCore instance is available through the configured internal endpoint."
       }
     ]
   }
@@ -134,9 +134,8 @@ Flush:
 {
   "name": "evercore_flush",
   "arguments": {
-    "user_id": "wei",
+    "user_id": "developer",
     "session_id": "evercore-mcp-setup-20260601"
   }
 }
 ```
-
