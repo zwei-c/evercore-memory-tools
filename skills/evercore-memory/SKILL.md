@@ -70,12 +70,12 @@ Recommended search defaults:
 
 ```json
 {
-  "name": "evercore_recall",
-  "arguments": {
-    "query": "What did we decide about this project?",
-    "scope": "project",
-    "top_k": 5
-  }
+	"name": "evercore_recall",
+	"arguments": {
+		"query": "What did we decide about this project?",
+		"scope": "project",
+		"top_k": 5
+	}
 }
 ```
 

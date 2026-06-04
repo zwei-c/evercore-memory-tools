@@ -24,16 +24,16 @@ export EVERCORE_DEFAULT_USER_ID="developer"
 
 ```json
 {
-  "mcpServers": {
-    "evercore-memory": {
-      "command": "npx",
-      "args": ["-y", "@zwei-c/evercore-memory-tools"],
-      "env": {
-        "EVERCORE_BASE_URL": "http://localhost:1995",
-        "EVERCORE_DEFAULT_USER_ID": "developer"
-      }
-    }
-  }
+	"mcpServers": {
+		"evercore-memory": {
+			"command": "npx",
+			"args": ["-y", "@zwei-c/evercore-memory-tools"],
+			"env": {
+				"EVERCORE_BASE_URL": "http://localhost:1995",
+				"EVERCORE_DEFAULT_USER_ID": "developer"
+			}
+		}
+	}
 }
 ```
 
@@ -41,16 +41,16 @@ export EVERCORE_DEFAULT_USER_ID="developer"
 
 ```json
 {
-  "mcpServers": {
-    "evercore-memory": {
-      "command": "node",
-      "args": ["/path/to/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
-      "env": {
-        "EVERCORE_BASE_URL": "http://localhost:1995",
-        "EVERCORE_DEFAULT_USER_ID": "developer"
-      }
-    }
-  }
+	"mcpServers": {
+		"evercore-memory": {
+			"command": "node",
+			"args": ["/path/to/evercore-memory-tools/bin/evercore-memory-mcp.mjs"],
+			"env": {
+				"EVERCORE_BASE_URL": "http://localhost:1995",
+				"EVERCORE_DEFAULT_USER_ID": "developer"
+			}
+		}
+	}
 }
 ```
 

@@ -1,45 +1,45 @@
 {
-  "name": "@zwei-c/evercore-memory-tools",
-  "version": "0.1.0",
-  "type": "module",
-  "description": "Local MCP server and Codex skill for using a self-hosted EverCore memory backend.",
-  "license": "MIT",
-  "keywords": [
-    "mcp",
-    "evercore",
-    "memory",
-    "codex",
-    "agent",
-    "self-hosted"
-  ],
-  "bin": {
-    "evercore-memory-mcp": "bin/evercore-memory-mcp.mjs"
-  },
-  "files": [
-    "bin/",
-    "src/",
-    "scripts/",
-    "skills/",
-    "README.md",
-    "README.zh-TW.md",
-    "server.json",
-    "LICENSE"
-  ],
-  "scripts": {
-    "mcp": "node ./bin/evercore-memory-mcp.mjs",
-    "briefing": "node ./scripts/briefing.mjs",
-    "history": "node ./scripts/history.mjs",
-    "high-level-tools": "node ./scripts/high-level-tools-smoke.mjs",
-    "ingest:codex": "node ./scripts/ingest-codex-session.mjs",
-    "ingest:status": "node ./scripts/ingest-status.mjs",
-    "scope": "node ./scripts/scope.mjs",
-    "spaces": "node ./scripts/spaces.mjs",
-    "smoke": "node ./scripts/smoke-test.mjs",
-    "smoke:remote": "node -e \"if (!process.env.EVERCORE_BASE_URL) throw new Error('Set EVERCORE_BASE_URL before running smoke:remote')\" && npm run smoke",
-    "test": "node ./scripts/test.mjs",
-    "tools": "node ./scripts/list-tools.mjs"
-  },
-  "engines": {
-    "node": ">=20"
-  }
+	"name": "@zwei-c/evercore-memory-tools",
+	"version": "0.1.1",
+	"type": "module",
+	"description": "Local MCP server and Codex skill for using a self-hosted EverCore memory backend.",
+	"license": "MIT",
+	"keywords": [
+		"mcp",
+		"evercore",
+		"memory",
+		"codex",
+		"agent",
+		"self-hosted"
+	],
+	"bin": {
+		"evercore-memory-mcp": "bin/evercore-memory-mcp.mjs"
+	},
+	"files": [
+		"bin/",
+		"src/",
+		"scripts/",
+		"skills/",
+		"README.md",
+		"README.zh-TW.md",
+		"server.json",
+		"LICENSE"
+	],
+	"scripts": {
+		"mcp": "node ./bin/evercore-memory-mcp.mjs",
+		"briefing": "node ./scripts/briefing.mjs",
+		"history": "node ./scripts/history.mjs",
+		"high-level-tools": "node ./scripts/high-level-tools-smoke.mjs",
+		"ingest:codex": "node ./scripts/ingest-codex-session.mjs",
+		"ingest:status": "node ./scripts/ingest-status.mjs",
+		"scope": "node ./scripts/scope.mjs",
+		"spaces": "node ./scripts/spaces.mjs",
+		"smoke": "node ./scripts/smoke-test.mjs",
+		"smoke:remote": "node -e \"if (!process.env.EVERCORE_BASE_URL) throw new Error('Set EVERCORE_BASE_URL before running smoke:remote')\" && npm run smoke",
+		"test": "node ./scripts/test.mjs",
+		"tools": "node ./scripts/list-tools.mjs"
+	},
+	"engines": {
+		"node": ">=20"
+	}
 }
