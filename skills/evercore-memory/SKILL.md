@@ -1,6 +1,12 @@
 ---
 name: evercore-memory
 description: Use this skill whenever a task can benefit from durable long-term memory through the self-hosted EverCore service. Trigger when the user mentions EverCore, EverOS memory, persistent memory, remembering preferences, recalling prior context, saving conversation knowledge, or when an agent should search/write/flush long-term memory across sessions.
+license: MIT
+metadata:
+  author: zwei-c
+  version: "0.1.0"
+  homepage: https://github.com/zwei-c/evercore-memory-tools
+  source: https://github.com/zwei-c/evercore-memory-tools
 ---
 
 # EverCore Memory

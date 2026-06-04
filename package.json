@@ -19,7 +19,7 @@
     "bin/",
     "src/",
     "scripts/",
-    "skill/",
+    "skills/",
     "README.md",
     "README.zh-TW.md",
     "server.json",
