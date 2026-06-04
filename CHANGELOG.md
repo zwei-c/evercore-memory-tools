@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3] - 2026-06-04
+
+### Changed
+
+- 版本同步：package.json、git tags、CHANGELOG 對齊
+
+## [0.1.2] - 2026-06-04
+
+### Changed
+
+- 建立 CHANGELOG.md 與 git version tags（v0.1.0、v0.1.1）
+
 ## [0.1.1] - 2026-06-04
 
 ### Changed
