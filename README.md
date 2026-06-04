@@ -113,6 +113,42 @@ The high-level write paths include a conservative sensitive-content guard for co
 
 Treat memory as durable operational context. Store decisions, conventions, verified fixes, and stable preferences; avoid storing raw secrets or transient logs.
 
+## Suggested Agent Prompts
+
+Add the following to your agent's instructions file (e.g., `AGENTS.md`, `copilot-instructions.md`, or workspace guidelines) to make the agent proactively use EverCore memory:
+
+```markdown
+## EverCore Memory
+
+This workspace uses a self-hosted EverCore memory backend for durable cross-session context. The EverCore MCP tools (`evercore_*`) are available in every conversation.
+
+### Session Start
+
+- At the beginning of each conversation, call `evercore_briefing` to get a session-start memory briefing for the current repo scope.
+- If no briefing tool is available, use `evercore_recall` with `scope: "project"` to check for prior decisions, preferences, or conventions relevant to the current repo.
+
+### During Conversation
+
+- Before making assumptions about user preferences, project conventions, or past decisions, search memory with `evercore_recall`.
+- Treat retrieved memory as helpful context, not as proof. If memory conflicts with live files or services, prefer the live source and note the discrepancy.
+
+### After Useful Interactions
+
+Write memory with `evercore_remember` when the information is durable and likely useful later:
+
+- User preferences or standing instructions
+- Stable project decisions or architectural choices
+- Verified service endpoints, operational facts, or configuration values
+- Debug findings that explain a root cause
+- Reusable commands or workflows
+
+Do NOT store: transient output, speculative analysis, or low-value conversation filler.
+
+### Privacy
+
+Never store secrets: `.env` values, API keys, tokens, passwords, private keys, or personal identifiers. Summarize only the safe durable fact when sensitive context is involved.
+```
+
 ## Compatibility Notes
 
 EverCore-compatible runtimes may expose different group listing behavior. If remote group listing is unavailable, `evercore_list_spaces` still returns current/config-derived spaces and reports the limitation in the response.

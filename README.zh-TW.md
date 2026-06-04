@@ -113,6 +113,42 @@ export EVERCORE_DEFAULT_SESSION_ID="my-project"
 
 請把 memory 當成長期 operational context：適合存決策、慣例、已驗證修復與穩定偏好；避免存 raw secrets 或短暫 logs。
 
+## 建議的 Agent Prompts
+
+將以下內容加入你的 agent 指令檔（例如 `AGENTS.md`、`copilot-instructions.md` 或 workspace guidelines），讓 agent 主動使用 EverCore memory：
+
+```markdown
+## EverCore Memory
+
+此 workspace 使用自託管的 EverCore memory 後端來維持跨對話的持久化上下文。EverCore MCP 工具（`evercore_*`）在每次對話中皆可用。
+
+### 對話開始時
+
+- 每次對話開始時，呼叫 `evercore_briefing` 取得目前 repo scope 的記憶簡報。
+- 若無 briefing 工具可用，使用 `evercore_recall` 搭配 `scope: "project"` 檢查與目前 repo 相關的過往決策、偏好或慣例。
+
+### 對話進行中
+
+- 在對使用者偏好、專案慣例或過往決策做出假設之前，先用 `evercore_recall` 搜尋記憶。
+- 將取回的記憶視為輔助上下文，而非證據。若記憶與實際檔案或服務衝突，以實際來源為準並記錄差異。
+
+### 有用互動後
+
+當資訊具備持久性且未來可能有用時，使用 `evercore_remember` 寫入記憶：
+
+- 使用者偏好或長期指示
+- 穩定的專案決策或架構選擇
+- 已驗證的服務端點、運作事實或設定值
+- 解釋根本原因的 debug 發現
+- 可重複使用的命令或工作流程
+
+不要儲存：暫時性輸出、推測性分析或低價值的對話填充內容。
+
+### 隱私
+
+絕不儲存 secrets：`.env` 值、API keys、tokens、密碼、私鑰或個人識別資訊。涉及敏感上下文時，只摘要安全的持久事實。
+```
+
 ## Compatibility Notes
 
 不同 EverCore-compatible runtime 的 group listing 行為可能不同。如果 remote group listing 不可用，`evercore_list_spaces` 仍會回傳 current/config-derived spaces，並在 response 中標明限制。
