@@ -5,6 +5,7 @@ const API_BASE_URL = `${BASE_URL}/api/v1`;
 const API_KEY = process.env.EVERCORE_API_KEY || "";
 const userId = process.env.EVERCORE_SMOKE_USER_ID || "codex-smoke-user";
 const sessionId = process.env.EVERCORE_SMOKE_SESSION_ID || `codex-smoke-${Date.now()}`;
+const groupId = process.env.EVERCORE_SMOKE_GROUP_ID || `coding:smoke:${sessionId}`;
 
 const headers = {
   Accept: "application/json",
@@ -19,6 +20,7 @@ console.log(`EverCore smoke test`);
 console.log(`Base URL: ${BASE_URL}`);
 console.log(`User ID: ${userId}`);
 console.log(`Session ID: ${sessionId}`);
+console.log(`Group ID: ${groupId}`);
 
 await step("health", async () => {
   const result = await request(`${BASE_URL}/health`, { method: "GET", body: undefined });
@@ -103,6 +105,113 @@ await step("delete smoke data", async () => {
     body: {
       user_id: userId,
       session_id: sessionId
+    }
+  });
+});
+
+await step("add group messages", async () => {
+  return request(`${API_BASE_URL}/memories/group`, {
+    method: "POST",
+    body: {
+      group_id: groupId,
+      group_meta: {
+        source: "evercore-memory-tools-smoke"
+      },
+      messages: [
+        {
+          role: "user",
+          timestamp: Date.now(),
+          sender_id: "codex-smoke",
+          sender_name: "Codex Smoke",
+          content: "EverCore group smoke test: repo-scoped memory stores the alpha release checklist."
+        },
+        {
+          role: "assistant",
+          timestamp: Date.now() + 1000,
+          sender_id: "codex-smoke",
+          sender_name: "Codex Smoke",
+          content: "Recorded the repo-scoped alpha release checklist."
+        }
+      ]
+    }
+  });
+});
+
+await step("search group raw messages", async () => {
+  const result = await request(`${API_BASE_URL}/memories/search`, {
+    method: "POST",
+    body: {
+      query: "repo-scoped memory alpha release checklist",
+      method: "keyword",
+      memory_types: ["raw_message"],
+      filters: {
+        group_id: groupId
+      },
+      top_k: 5
+    }
+  });
+  assert(result.data?.raw_messages?.length > 0, "group raw search should return at least one message");
+  return summarizeSearch(result);
+});
+
+await step("flush group memories", async () => {
+  return request(`${API_BASE_URL}/memories/group/flush`, {
+    method: "POST",
+    body: {
+      group_id: groupId
+    }
+  });
+});
+
+await step("delete group smoke data", async () => {
+  return request(`${API_BASE_URL}/memories/delete`, {
+    method: "POST",
+    expectNoContent: true,
+    body: {
+      group_id: groupId
+    }
+  });
+});
+
+await step("add agent trajectory messages", async () => {
+  return request(`${API_BASE_URL}/memories/agent`, {
+    method: "POST",
+    body: {
+      user_id: userId,
+      session_id: `${sessionId}-agent`,
+      messages: [
+        {
+          role: "user",
+          timestamp: Date.now(),
+          content: "EverCore agent smoke test: inspect the failing deployment check."
+        },
+        {
+          role: "assistant",
+          timestamp: Date.now() + 1000,
+          content: "The deployment check failed because the smoke test intentionally used a placeholder."
+        }
+      ]
+    }
+  });
+});
+
+await step("flush agent memories", async () => {
+  return request(`${API_BASE_URL}/memories/agent/flush`, {
+    method: "POST",
+    body: {
+      user_id: userId,
+      session_id: `${sessionId}-agent`
+    }
+  });
+});
+
+await step("delete agent smoke data", async () => {
+  return request(`${API_BASE_URL}/memories/delete`, {
+    method: "POST",
+    expectNoContent: true,
+    body: {
+      user_id: userId,
+      session_id: `${sessionId}-agent`
     }
   });
 });

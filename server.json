@@ -1,0 +1,40 @@
+{
+  "name": "evercore-memory",
+  "version": "0.1.0",
+  "description": "MCP server for self-hosted EverCore-compatible long-term coding memory.",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "registry_base_url": "https://registry.npmjs.org",
+      "identifier": "evercore-memory-tools",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtime_hint": "node"
+    }
+  ],
+  "env": [
+    {
+      "name": "EVERCORE_BASE_URL",
+      "description": "Base URL for the self-hosted EverCore service, for example http://localhost:1995.",
+      "required": true
+    },
+    {
+      "name": "EVERCORE_DEFAULT_USER_ID",
+      "description": "Default user id for user/agent scoped memory.",
+      "required": false
+    },
+    {
+      "name": "EVERCORE_DEFAULT_SESSION_ID",
+      "description": "Optional default session id for personal memory scopes.",
+      "required": false
+    },
+    {
+      "name": "EVERCORE_API_KEY",
+      "description": "Bearer token when the EverCore endpoint is protected by auth.",
+      "required": false,
+      "sensitive": true
+    }
+  ]
+}

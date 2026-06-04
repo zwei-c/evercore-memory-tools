@@ -84,9 +84,19 @@ function verifyResponses() {
   const toolNames = list?.result?.tools?.map((tool) => tool.name).sort() || [];
   const expected = [
     "evercore_add",
+    "evercore_briefing",
     "evercore_delete",
     "evercore_flush",
     "evercore_health",
+    "evercore_forget",
+    "evercore_fetch_history",
+    "evercore_ingest_codex",
+    "evercore_ingest_status",
+    "evercore_list_spaces",
+    "evercore_recall",
+    "evercore_remember",
+    "evercore_request_status",
+    "evercore_scope",
     "evercore_search"
   ];
 
