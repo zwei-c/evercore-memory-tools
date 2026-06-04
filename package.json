@@ -20,7 +20,6 @@
     "src/",
     "scripts/",
     "skill/",
-    "docs/",
     "README.md",
     "README.zh-TW.md",
     "server.json",
