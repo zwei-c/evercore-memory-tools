@@ -27,7 +27,7 @@ export EVERCORE_DEFAULT_USER_ID="developer"
   "mcpServers": {
     "evercore-memory": {
       "command": "npx",
-      "args": ["-y", "evercore-memory-tools"],
+      "args": ["-y", "@zwei-c/evercore-memory-tools"],
       "env": {
         "EVERCORE_BASE_URL": "http://localhost:1995",
         "EVERCORE_DEFAULT_USER_ID": "developer"

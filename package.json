@@ -1,5 +1,5 @@
 {
-  "name": "evercore-memory-tools",
+  "name": "@zwei-c/evercore-memory-tools",
   "version": "0.1.0",
   "type": "module",
   "description": "Local MCP server and Codex skill for using a self-hosted EverCore memory backend.",

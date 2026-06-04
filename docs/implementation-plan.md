@@ -361,7 +361,7 @@ Codex MVP 穩定後再擴展：
 
 ```json
 {
-  "name": "@example-org/evercore-memory-tools"
+  "name": "@zwei-c/evercore-memory-tools"
 }
 ```
 
@@ -373,7 +373,7 @@ Codex MVP 穩定後再擴展：
     "evercore-memory": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@example-org/evercore-memory-tools"],
+      "args": ["-y", "@zwei-c/evercore-memory-tools"],
       "env": {
         "EVERCORE_BASE_URL": "http://localhost:1995",
         "EVERCORE_DEFAULT_USER_ID": "developer"
@@ -1235,8 +1235,7 @@ npm run ingest:codex -- --latest --dry-run
 第三階段只準備，不發布；目前已新增 `server.json` draft：
 
 - 決定 package name：
-  - keep `evercore-memory-tools`
-  - or scoped `@example-org/evercore-memory-tools`
+  - use scoped package `@zwei-c/evercore-memory-tools`
 - 決定 `private` 是否保留。
 - 新增 `server.json` draft：
   - name
